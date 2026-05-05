@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCD Calculator - Euclidean Algorithm</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .result-item {
+            margin: 8px 0;
+            padding: 8px 0;
+            color: #333;
+            font-size: 0.95em;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .result-value {
+            color: #333;
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+        }
+
+        .error {
+            background-color: #fee !important;
+            border-left-color: #f88 !important;
+            color: #c33;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .success {
+            background-color: #efe !important;
+            border-left-color: #8f8 !important;
+        }
+
+        .equation {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            text-align: center;
+            border: 1px solid #667eea;
+            color: #333;
+        }
+
+        .steps {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .steps h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .step {
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border-left: 3px solid #764ba2;
+            padding-left: 12px;
+            font-size: 0.9em;
+            font-family: 'Courier New', monospace;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-size: 0.9em;
+            color: #0d47a1;
+        }
+
+        .info-box strong {
+            color: #1565c0;
+        }
+
+        @media (max-width: 768px) {
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔢 GCD Calculator</h1>
+            <p>Euclidean Algorithm for Greatest Common Divisor</p>
+        </div>
+
+        <div class="calculator-grid">
+            <!-- GCD Calculator -->
+            <div class="card">
+                <h2>GCD Calculation</h2>
+                <div class="form-group">
+                    <label for="gcd-a">First Number (a):</label>
+                    <input type="number" id="gcd-a" placeholder="e.g., 48">
+                </div>
+                <div class="form-group">
+                    <label for="gcd-b">Second Number (b):</label>
+                    <input type="number" id="gcd-b" placeholder="e.g., 18">
+                </div>
+                <button onclick="calculateGCD()">Calculate GCD</button>
+                <div class="loading" id="gcd-loading">
+                    <div class="spinner"></div>
+                </div>
+                <div class="result" id="gcd-result"></div>
+            </div>
+
+            <!-- Extended GCD Calculator -->
+            <div class="card">
+                <h2>Extended GCD</h2>
+                <div class="info-box">
+                    <strong>Extended GCD:</strong> Finds a×x + b×y = gcd(a, b)
+                </div>
+                <div class="form-group">
+                    <label for="egcd-a">First Number (a):</label>
+                    <input type="number" id="egcd-a" placeholder="e.g., 48">
+                </div>
+                <div class="form-group">
+                    <label for="egcd-b">Second Number (b):</label>
+                    <input type="number" id="egcd-b" placeholder="e.g., 18">
+                </div>
+                <button onclick="calculateExtendedGCD()">Calculate Extended GCD</button>
+                <div class="loading" id="egcd-loading">
+                    <div class="spinner"></div>
+                </div>
+                <div class="result" id="egcd-result"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function calculateGCD() {
+            const a = parseInt(document.getElementById('gcd-a').value);
+            const b = parseInt(document.getElementById('gcd-b').value);
+
+            if (isNaN(a) || isNaN(b)) {
+                showError('gcd-result', 'Please enter valid numbers');
+                return;
+            }
+
+            showLoading('gcd-loading');
+
+            fetch('/api/gcd', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ a, b })
+            })
+            .then(res => res.json())
+            .then(data => {
+                hideLoading('gcd-loading');
+                if (data.error) {
+                    showError('gcd-result', data.error);
+                } else {
+                    let html = `
+                        <h3>Results</h3>
+                        <div class="result-item">
+                            <span class="result-label">GCD(${data.a}, ${data.b}) =</span>
+                            <span class="result-value">${data.gcd}</span>
+                        </div>
+                    `;
+
+                    if (data.steps && data.steps.steps.length > 0) {
+                        html += '<div class="steps"><h4>Step-by-step Calculation:</h4>';
+                        data.steps.steps.forEach(step => {
+                            html += `<div class="step">${step.equation}</div>`;
+                        });
+                        html += '</div>';
+                    }
+
+                    document.getElementById('gcd-result').innerHTML = html;
+                    document.getElementById('gcd-result').classList.add('show', 'success');
+                }
+            })
+            .catch(err => {
+                hideLoading('gcd-loading');
+                showError('gcd-result', 'Error: ' + err.message);
+            });
+        }
+
+        function calculateExtendedGCD() {
+            const a = parseInt(document.getElementById('egcd-a').value);
+            const b = parseInt(document.getElementById('egcd-b').value);
+
+            if (isNaN(a) || isNaN(b)) {
+                showError('egcd-result', 'Please enter valid numbers');
+                return;
+            }
+
+            showLoading('egcd-loading');
+
+            fetch('/api/extended-gcd', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ a, b })
+            })
+            .then(res => res.json())
+            .then(data => {
+                hideLoading('egcd-loading');
+                if (data.error) {
+                    showError('egcd-result', data.error);
+                } else {
+                    let html = `
+                        <h3>Extended GCD Results</h3>
+                        <div class="result-item">
+                            <span class="result-label">GCD(${data.a}, ${data.b}) =</span>
+                            <span class="result-value">${data.gcd}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Coefficient x =</span>
+                            <span class="result-value">${data.x}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Coefficient y =</span>
+                            <span class="result-value">${data.y}</span>
+                        </div>
+                        <div class="equation">${data.equation}</div>
+                        <div class="result-item">
+                            <span class="result-label">Verification:</span>
+                            <span class="result-value">${data.verification} ✓</span>
+                        </div>
+                    `;
+                    document.getElementById('egcd-result').innerHTML = html;
+                    document.getElementById('egcd-result').classList.add('show', 'success');
+                }
+            })
+            .catch(err => {
+                hideLoading('egcd-loading');
+                showError('egcd-result', 'Error: ' + err.message);
+            });
+        }
+
+
+
+        function showError(elementId, message) {
+            document.getElementById(elementId).innerHTML = `<div class="error">${message}</div>`;
+            document.getElementById(elementId).classList.add('show');
+            document.getElementById(elementId).classList.remove('success');
+        }
+
+        function showLoading(elementId) {
+            document.getElementById(elementId).style.display = 'block';
+        }
+
+        function hideLoading(elementId) {
+            document.getElementById(elementId).style.display = 'none';
+        }
+
+        // Allow Enter key to submit
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (document.activeElement.id.startsWith('gcd-')) {
+                    calculateGCD();
+                } else if (document.activeElement.id.startsWith('egcd-')) {
+                    calculateExtendedGCD();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
