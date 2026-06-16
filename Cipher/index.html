@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Cipher Cryptography Dashboard</title>
+    <!-- CSS Link -->
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <i class="fa-solid fa-key logo-icon"></i>
+                <span class="logo-text">CipherLab</span>
+            </div>
+            
+            <nav class="nav-container">
+                <ul class="nav-menu">
+                    <li class="nav-item active" data-cipher="caesar">
+                        <button><i class="fa-solid fa-arrows-left-right"></i> Caesar Cipher</button>
+                    </li>
+                    <li class="nav-item" data-cipher="playfair">
+                        <button><i class="fa-solid fa-table-cells"></i> Playfair Cipher</button>
+                    </li>
+                    <li class="nav-item" data-cipher="monoalphabetic">
+                        <button><i class="fa-solid fa-font"></i> Monoalphabetic</button>
+                    </li>
+                    <li class="nav-item" data-cipher="otp">
+                        <button><i class="fa-solid fa-scroll"></i> One-Time Pad</button>
+                    </li>
+                    <li class="nav-item" data-cipher="hill">
+                        <button><i class="fa-solid fa-border-all"></i> Hill Cipher</button>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <p>Interactive Cryptography Learning Sandbox</p>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="dashboard-title">
+                    <h1 id="cipher-title">Caesar Cipher</h1>
+                    <p id="cipher-subtitle">A simple substitution cipher shifting alphabet characters by a fixed value.</p>
+                </div>
+                <div class="badge" id="cipher-type-badge">Substitution Cipher</div>
+            </header>
+
+            <!-- Grid Layout -->
+            <div class="dashboard-grid">
+                <!-- Left: Playground & Main Input -->
+                <div class="glass-panel" id="playground-panel">
+                    <div class="section-title">
+                        <i class="fa-solid fa-terminal"></i>
+                        <span>Cryptographic Playground</span>
+                    </div>
+
+                    <!-- Alert message container -->
+                    <div id="alert-container" style="display: none;"></div>
+
+                    <!-- Action control bar (Encrypt / Decrypt toggle) -->
+                    <div class="form-group">
+                        <div class="actions-bar" style="margin-top: 0; margin-bottom: 1.5rem;">
+                            <div class="mode-toggle-group">
+                                <button class="mode-btn active" id="mode-encrypt">Encrypt</button>
+                                <button class="mode-btn" id="mode-decrypt">Decrypt</button>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" id="btn-clear-all">
+                                <i class="fa-solid fa-trash-can"></i> Clear All
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Input Parameters Config Panels (Toggle based on active cipher) -->
+                    
+                    <!-- Caesar Shift Config -->
+                    <div class="cipher-config" id="config-caesar">
+                        <div class="form-group">
+                            <label for="caesar-shift">Key Shift (0 - 25)</label>
+                            <div class="slider-container">
+                                <input type="range" id="caesar-shift" min="0" max="25" value="3" class="slider">
+                                <span class="slider-val" id="caesar-shift-val">3</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Playfair Key Config -->
+                    <div class="cipher-config" id="config-playfair" style="display: none;">
+                        <div class="form-group">
+                            <label for="playfair-key">Secret Keyphrase</label>
+                            <input type="text" id="playfair-key" class="input-control" value="PLAYFAIR EXAMPLE" placeholder="Enter keyword (e.g. SECRETKEY)">
+                        </div>
+                    </div>
+
+                    <!-- Monoalphabetic Sub Alphabet Config -->
+                    <div class="cipher-config" id="config-monoalphabetic" style="display: none;">
+                        <div class="form-group">
+                            <label for="mono-key">Substitution Alphabet (26 unique letters)</label>
+                            <div style="display: flex; gap: 0.75rem;">
+                                <input type="text" id="mono-key" class="input-control" style="font-family: var(--font-mono); letter-spacing: 1.5px;" value="QWERTYUIOPASDFGHJKLZXCVBNM" placeholder="26-letter substitution alphabet">
+                                <button class="btn btn-secondary btn-sm" id="btn-random-mono" style="white-space: nowrap;">
+                                    <i class="fa-solid fa-shuffle"></i> Shuffle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- One-Time Pad Config -->
+                    <div class="cipher-config" id="config-otp" style="display: none;">
+                        <div class="form-group">
+                            <label for="otp-key">Pad Key (must be length of input text letters)</label>
+                            <div style="display: flex; gap: 0.75rem;">
+                                <input type="text" id="otp-key" class="input-control" style="font-family: var(--font-mono); text-transform: uppercase;" value="CRYPTO" placeholder="Enter key (letters only)">
+                                <button class="btn btn-secondary btn-sm" id="btn-generate-otp" style="white-space: nowrap;">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Key
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hill Matrix Config -->
+                    <div class="cipher-config" id="config-hill" style="display: none;">
+                        <div class="form-group">
+                            <label>Key Matrix (2x2 Invertible mod 26)</label>
+                            <div class="hill-matrix-container">
+                                <div class="hill-matrix">
+                                    <input type="number" id="hill-k00" class="hill-matrix-input" value="3">
+                                    <input type="number" id="hill-k01" class="hill-matrix-input" value="3">
+                                    <input type="number" id="hill-k10" class="hill-matrix-input" value="2">
+                                    <input type="number" id="hill-k11" class="hill-matrix-input" value="5">
+                                </div>
+                                <div class="hill-stats">
+                                    <div>Determinant: <span id="hill-det-val">9</span></div>
+                                    <div>Status: <span id="hill-status-badge" style="color: var(--accent-emerald);">Valid</span></div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <button class="btn btn-secondary btn-sm" id="btn-random-hill">
+                                        <i class="fa-solid fa-gears"></i> Generate Valid Matrix
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Text Inputs -->
+                    <div class="form-group">
+                        <label for="input-text" id="label-input-text">Plaintext Input</label>
+                        <textarea id="input-text" class="input-control" placeholder="Type message to encrypt..."></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="output-text" id="label-output-text">Ciphertext Output</label>
+                        <div class="output-box-container">
+                            <textarea id="output-text" class="input-control" readonly placeholder="Output will appear here..."></textarea>
+                            <button class="copy-btn" id="btn-copy-output" title="Copy to Clipboard">
+                                <i class="fa-solid fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Visualizer and Trace Panel -->
+                <div class="glass-panel" id="visualizer-panel">
+                    <div class="section-title">
+                        <i class="fa-solid fa-eye"></i>
+                        <span>Visual Trace & Analysis</span>
+                    </div>
+
+                    <!-- Dynamic visual key area (matrix or shift mapping) -->
+                    <div id="visual-key-display">
+                        <!-- Caesar Wheel / Mapping representation -->
+                        <div class="visual-wrapper" id="visual-caesar-wrapper">
+                            <div class="mono-alphabet-visual" id="caesar-visual-mapping"></div>
+                        </div>
+
+                        <!-- Playfair 5x5 Grid representation -->
+                        <div class="visual-wrapper" id="visual-playfair-wrapper" style="display: none;">
+                            <div class="playfair-grid-wrapper">
+                                <div class="playfair-matrix" id="playfair-grid-visual"></div>
+                                <div class="info-text" style="font-size: 0.8rem; text-align: center;">Note: 'J' is replaced by 'I'</div>
+                            </div>
+                        </div>
+
+                        <!-- Monoalphabetic Table representation -->
+                        <div class="visual-wrapper" id="visual-monoalphabetic-wrapper" style="display: none;">
+                            <div class="mono-alphabet-visual" id="mono-visual-mapping"></div>
+                        </div>
+
+                        <!-- OTP details representation -->
+                        <div class="visual-wrapper" id="visual-otp-wrapper" style="display: none;">
+                            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+                                <div class="info-text" style="font-size: 0.85rem; text-align: center; font-family: var(--font-mono);">
+                                    Key length matches text length: <span id="otp-length-status" style="color: var(--accent-emerald);">0 / 0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hill details representation -->
+                        <div class="visual-wrapper" id="visual-hill-wrapper" style="display: none;">
+                            <div id="hill-decrypt-matrix-display" style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; text-align: center; display: none;">
+                                <div class="info-text" style="font-size: 0.85rem; font-family: var(--font-mono); margin-bottom: 0.5rem;">Decryption Matrix (K⁻¹ mod 26):</div>
+                                <div class="hill-matrix" id="hill-decrypt-matrix-grid" style="grid-template-columns: repeat(2, 60px); grid-template-rows: repeat(2, 35px); margin-bottom: 0.5rem;">
+                                    <span class="hill-matrix-input" style="padding-top: 6px;"></span>
+                                    <span class="hill-matrix-input" style="padding-top: 6px;"></span>
+                                    <span class="hill-matrix-input" style="padding-top: 6px;"></span>
+                                    <span class="hill-matrix-input" style="padding-top: 6px;"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mathematical Step-by-Step Tracing -->
+                    <div style="margin-top: 1rem;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.75rem;">Live Computation Steps:</h4>
+                        <div class="trace-container" id="trace-output-container">
+                            <div class="no-trace">Type standard letters in the input box to see live mathematical tracing steps...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom: Educational Info -->
+            <section class="glass-panel info-section" id="educational-info-panel">
+                <div class="section-title">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>Cipher History & Mathematical Foundation</span>
+                </div>
+                <div id="educational-content">
+                    <!-- Loaded dynamically via app.js -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Main JavaScript Modules -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
